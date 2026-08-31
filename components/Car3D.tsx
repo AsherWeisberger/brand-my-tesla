@@ -116,19 +116,17 @@ function SpotPad({
       >
         <planeGeometry args={size} />
         {taken && logo ? (
-          <meshBasicMaterial map={logo} toneMapped={false} side={THREE.DoubleSide} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
+          <meshBasicMaterial map={logo} toneMapped={false} side={THREE.DoubleSide} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
         ) : (
-          <meshPhysicalMaterial
-            color={hot ? "#e2ff4d" : "#111110"}
+          <meshBasicMaterial
+            color={hot ? "#e2ff4d" : "#ffffff"}
             transparent
-            opacity={hot ? 0.72 : 0.38}
-            roughness={0.35}
-            metalness={0.1}
+            opacity={hot ? 0.42 : 0}
             depthWrite={false}
             side={THREE.DoubleSide}
             polygonOffset
-            polygonOffsetFactor={-1}
-            polygonOffsetUnits={-1}
+            polygonOffsetFactor={-2}
+            polygonOffsetUnits={-2}
           />
         )}
       </mesh>
@@ -175,9 +173,13 @@ function TeslaModel({ spots, onPick }: { spots: SpotView[]; onPick: (id: number)
         const n = (std.name || "").toLowerCase();
         if (n === "primary" || n.startsWith("primary.")) {
           std.color.set(PAINT);
-          std.metalness = 0.55;
-          std.roughness = 0.22;
-          std.envMapIntensity = 1.8;
+          std.metalness = 0.7;
+          std.roughness = 0.16;
+          if ("clearcoat" in std) {
+            (std as THREE.MeshPhysicalMaterial).clearcoat = 1;
+            (std as THREE.MeshPhysicalMaterial).clearcoatRoughness = 0.07;
+          }
+          std.envMapIntensity = 1.3;
         }
       }
     });
@@ -218,8 +220,8 @@ function TeslaModel({ spots, onPick }: { spots: SpotView[]; onPick: (id: number)
 function LockedOrbit() {
   const { camera } = useThree();
   useEffect(() => {
-    camera.position.set(3.2, 1.55, -5.6);
-    camera.lookAt(0, 0.75, 0);
+    camera.position.set(3.35, 1.45, -5.4);
+    camera.lookAt(0, 0.7, 0);
   }, [camera]);
   return (
     <OrbitControls
@@ -230,9 +232,9 @@ function LockedOrbit() {
       maxDistance={9}
       minPolarAngle={1.05}
       maxPolarAngle={1.35}
-      target={[0, 0.75, 0]}
+      target={[0, 0.7, 0]}
       autoRotate
-      autoRotateSpeed={0.35}
+      autoRotateSpeed={0.28}
     />
   );
 }
@@ -251,14 +253,14 @@ export default function Car3D({ spots, onPick }: { spots: SpotView[]; onPick: (i
       <Canvas
         shadows
         dpr={[1, 2]}
-        camera={{ fov: 32, near: 0.4, far: 40, position: [3.2, 1.55, -5.6] }}
-        gl={{ antialias: true }}
+        camera={{ fov: 30, near: 0.4, far: 40, position: [3.35, 1.45, -5.4] }}
+        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.12 }}
       >
-        <color attach="background" args={["#0c0d12"]} />
-        <ambientLight intensity={0.32} />
-        <spotLight position={[5, 8, 3]} intensity={55} angle={0.35} penumbra={0.7} castShadow />
-        <spotLight position={[-4, 4, -6]} intensity={22} color="#9aa7ff" />
-        <Environment preset="city" />
+        <color attach="background" args={["#101218"]} />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[6, 8, 4]} intensity={1.55} />
+        <directionalLight position={[-5, 3, -6]} intensity={0.55} color="#d7def0" />
+        <Environment preset="studio" />
         <Suspense fallback={<Loader />}>
           <TeslaModel spots={spots} onPick={onPick} />
         </Suspense>

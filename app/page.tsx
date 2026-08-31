@@ -157,7 +157,7 @@ export default function Home() {
               Spot map
             </button>
           </div>
-          <p className="hint">Drag to orbit · click a pad on the car to bid</p>
+          <p className="hint">Drag to orbit · hover a panel, click to bid</p>
         </section>
 
         <section className="section">
