@@ -18,39 +18,78 @@ export type SpotView = {
 
 const MODEL = "/models/tesla/scene.gltf";
 const PAINT = "#ffffff";
-const NUDGE = 0.012; // sit on the paint
+const PAD_LIFT = 0.006;
+const SKIP_HIT = /wheel|glass|hub|tire|chrome|light|lcd|seat/i;
 
 type PadDef = {
   id: number;
   f: [number, number, number];
   size: [number, number];
-  rot: [number, number, number];
   out: [number, number, number];
 };
 
 // After Y=π: min.z = rear/trunk, max.z = front/hood.
-// Driver (US) is max.x (0.92); passenger is min.x (0.08).
+// Driver (US) is max.x; passenger is min.x.
 // From the default rear camera (−Z), that puts the driver on screen-right.
 const PAD_DEFS: PadDef[] = [
-  { id: 1, f: [0.5, 0.78, 0.78], size: [0.55, 0.32], rot: [-Math.PI / 2, 0, 0], out: [0, 1, 0] },
-  { id: 2, f: [0.92, 0.42, 0.55], size: [0.55, 0.28], rot: [0, -Math.PI / 2, 0], out: [1, 0, 0] },
-  { id: 3, f: [0.08, 0.42, 0.55], size: [0.55, 0.28], rot: [0, Math.PI / 2, 0], out: [-1, 0, 0] },
-  { id: 4, f: [0.92, 0.42, 0.38], size: [0.55, 0.28], rot: [0, -Math.PI / 2, 0], out: [1, 0, 0] },
-  { id: 5, f: [0.08, 0.42, 0.38], size: [0.55, 0.28], rot: [0, Math.PI / 2, 0], out: [-1, 0, 0] },
-  { id: 6, f: [0.72, 0.22, 0.97], size: [0.32, 0.12], rot: [0, 0, 0], out: [0, 0, 1] },
-  { id: 7, f: [0.28, 0.22, 0.97], size: [0.32, 0.12], rot: [0, 0, 0], out: [0, 0, 1] },
-  { id: 8, f: [0.66, 0.70, 0.12], size: [0.38, 0.20], rot: [0.22, Math.PI, 0], out: [0, 0.22, -1] },
-  { id: 9, f: [0.34, 0.70, 0.12], size: [0.38, 0.20], rot: [0.22, Math.PI, 0], out: [0, 0.22, -1] },
-  { id: 10, f: [0.72, 0.22, 0.015], size: [0.32, 0.12], rot: [0, Math.PI, 0], out: [0, 0, -1] },
-  { id: 11, f: [0.28, 0.22, 0.015], size: [0.32, 0.12], rot: [0, Math.PI, 0], out: [0, 0, -1] },
+  { id: 1, f: [0.5, 0.55, 0.82], size: [0.42, 0.2], out: [0, 1, 0] },
+  { id: 2, f: [0.98, 0.42, 0.55], size: [0.36, 0.16], out: [1, 0, 0] },
+  { id: 3, f: [0.02, 0.42, 0.55], size: [0.36, 0.16], out: [-1, 0, 0] },
+  { id: 4, f: [0.98, 0.42, 0.38], size: [0.32, 0.15], out: [1, 0, 0] },
+  { id: 5, f: [0.02, 0.42, 0.38], size: [0.32, 0.15], out: [-1, 0, 0] },
+  { id: 6, f: [0.72, 0.22, 1.05], size: [0.22, 0.08], out: [0, 0, 1] },
+  { id: 7, f: [0.28, 0.22, 1.05], size: [0.22, 0.08], out: [0, 0, 1] },
+  { id: 8, f: [0.62, 0.62, 0.08], size: [0.28, 0.13], out: [0, 0.15, -1] },
+  { id: 9, f: [0.38, 0.62, 0.08], size: [0.28, 0.13], out: [0, 0.15, -1] },
+  { id: 10, f: [0.7, 0.2, -0.02], size: [0.2, 0.08], out: [0, 0, -1] },
+  { id: 11, f: [0.3, 0.2, -0.02], size: [0.2, 0.08], out: [0, 0, -1] },
 ];
 
 type PadPose = {
   id: number;
   position: [number, number, number];
-  rotation: [number, number, number];
+  quaternion: [number, number, number, number];
   size: [number, number];
 };
+
+function skipHit(hit: THREE.Intersection): boolean {
+  let obj: THREE.Object3D | null = hit.object;
+  while (obj) {
+    if (SKIP_HIT.test(obj.name)) return true;
+    obj = obj.parent;
+  }
+  const mesh = hit.object as THREE.Mesh;
+  const mats = Array.isArray(mesh.material) ? mesh.material : mesh.material ? [mesh.material] : [];
+  for (const mat of mats) {
+    if (mat && SKIP_HIT.test(mat.name)) return true;
+  }
+  return false;
+}
+
+function posePad(scene: THREE.Object3D, box: THREE.Box3, def: PadDef): PadPose | null {
+  const sx = box.max.x - box.min.x;
+  const sy = box.max.y - box.min.y;
+  const sz = box.max.z - box.min.z;
+  const aim = new THREE.Vector3(box.min.x + def.f[0] * sx, box.min.y + def.f[1] * sy, box.min.z + def.f[2] * sz);
+  const out = new THREE.Vector3(...def.out).normalize();
+  const origin = aim.clone().addScaledVector(out, 3);
+  const raycaster = new THREE.Raycaster(origin, out.clone().negate());
+  const hits = raycaster.intersectObject(scene, true);
+  const hit = hits.find((h) => h.face && !skipHit(h));
+  if (!hit || !hit.face) return null;
+
+  const worldNormal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+  if (worldNormal.dot(out) < 0) worldNormal.negate();
+
+  const position = hit.point.clone().addScaledVector(worldNormal, PAD_LIFT);
+  const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), worldNormal);
+  return {
+    id: def.id,
+    position: [position.x, position.y, position.z],
+    quaternion: [quat.x, quat.y, quat.z, quat.w],
+    size: def.size,
+  };
+}
 
 function useLogoTexture(url?: string) {
   const [tex, setTex] = useState<THREE.Texture | null>(null);
@@ -85,13 +124,13 @@ function useLogoTexture(url?: string) {
 function SpotPad({
   spot,
   position,
-  rotation,
+  quaternion,
   size,
   onPick,
 }: {
   spot?: SpotView;
   position: [number, number, number];
-  rotation: [number, number, number];
+  quaternion: [number, number, number, number];
   size: [number, number];
   onPick: (id: number) => void;
 }) {
@@ -102,7 +141,7 @@ function SpotPad({
   const taken = Boolean(logo);
 
   return (
-    <group position={position} rotation={rotation}>
+    <group position={position} quaternion={quaternion}>
       <mesh
         onClick={(e) => {
           e.stopPropagation();
@@ -116,14 +155,21 @@ function SpotPad({
       >
         <planeGeometry args={size} />
         {taken && logo ? (
-          <meshBasicMaterial map={logo} toneMapped={false} side={THREE.DoubleSide} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+          <meshBasicMaterial
+            map={logo}
+            toneMapped={false}
+            side={THREE.FrontSide}
+            polygonOffset
+            polygonOffsetFactor={-2}
+            polygonOffsetUnits={-2}
+          />
         ) : (
           <meshBasicMaterial
             color={hot ? "#e2ff4d" : "#3a3936"}
             transparent
-            opacity={hot ? 0.88 : 0.78}
+            opacity={hot ? 0.88 : 0.72}
             depthWrite={false}
-            side={THREE.DoubleSide}
+            side={THREE.FrontSide}
             polygonOffset
             polygonOffsetFactor={-2}
             polygonOffsetUnits={-2}
@@ -186,33 +232,14 @@ function TeslaModel({ spots, onPick }: { spots: SpotView[]; onPick: (id: number)
     });
     scene.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(scene);
-    const sx = box.max.x - box.min.x;
-    const sy = box.max.y - box.min.y;
-    const sz = box.max.z - box.min.z;
-    const at = (fx: number, fy: number, fz: number): [number, number, number] => [
-      box.min.x + fx * sx,
-      box.min.y + fy * sy,
-      box.min.z + fz * sz,
-    ];
-    setPads(
-      PAD_DEFS.map((def) => {
-        const [x, y, z] = at(...def.f);
-        const len = Math.hypot(...def.out) || 1;
-        return {
-          id: def.id,
-          position: [x + (def.out[0] / len) * NUDGE, y + (def.out[1] / len) * NUDGE, z + (def.out[2] / len) * NUDGE] as [number, number, number],
-          rotation: def.rot,
-          size: def.size,
-        };
-      }),
-    );
+    setPads(PAD_DEFS.map((def) => posePad(scene, box, def)).filter((p): p is PadPose => p !== null));
   }, [scene]);
 
   return (
     <group>
       <primitive object={scene} />
       {pads?.map((pad) => (
-        <SpotPad key={pad.id} spot={byId[pad.id]} position={pad.position} rotation={pad.rotation} size={pad.size} onPick={onPick} />
+        <SpotPad key={pad.id} spot={byId[pad.id]} position={pad.position} quaternion={pad.quaternion} size={pad.size} onPick={onPick} />
       ))}
     </group>
   );

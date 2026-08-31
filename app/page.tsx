@@ -157,7 +157,7 @@ export default function Home() {
               Spot map
             </button>
           </div>
-          <p className="hint">Drag to orbit · grey pads are the brand spots, click to bid</p>
+          <p className="hint">Drag to orbit · click a grey sticker on the car to bid</p>
         </section>
 
         <section className="section">
