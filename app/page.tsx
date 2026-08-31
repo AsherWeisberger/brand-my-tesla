@@ -157,7 +157,7 @@ export default function Home() {
               Spot map
             </button>
           </div>
-          <p className="hint">Drag to spin · pinch to zoom · tap a sticker to bid</p>
+          <p className="hint">Drag to spin the 2018 Model 3 · Spot map is for bidding</p>
         </section>
 
         <section className="section">
