@@ -197,7 +197,7 @@ img { max-width: 100%; }
   height: min(540px, 78vw);
   border-radius: 18px;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 72%, #1a1c26 0%, #0c0d12 70%);
+  background: #e8e6e0;
   cursor: grab;
   touch-action: none;
 }

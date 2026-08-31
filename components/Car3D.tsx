@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactShadows, Environment, Html, OrbitControls, useCursor, useGLTF } from "@react-three/drei";
+import { ContactShadows, Html, OrbitControls, useCursor, useGLTF } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import * as THREE from "three";
@@ -18,7 +18,7 @@ export type SpotView = {
 
 const MODEL = "/models/tesla/scene.gltf";
 const PAINT = "#f3f1ec";
-const NUDGE = 0.03; // ~3 cm off the paint
+const NUDGE = 0.012; // sit on the paint
 
 type PadDef = {
   id: number;
@@ -119,9 +119,9 @@ function SpotPad({
           <meshBasicMaterial map={logo} toneMapped={false} side={THREE.DoubleSide} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
         ) : (
           <meshBasicMaterial
-            color={hot ? "#e2ff4d" : "#ffffff"}
+            color={hot ? "#e2ff4d" : "#8f8d87"}
             transparent
-            opacity={hot ? 0.42 : 0}
+            opacity={hot ? 0.72 : 0.58}
             depthWrite={false}
             side={THREE.DoubleSide}
             polygonOffset
@@ -254,17 +254,16 @@ export default function Car3D({ spots, onPick }: { spots: SpotView[]; onPick: (i
         shadows
         dpr={[1, 2]}
         camera={{ fov: 30, near: 0.4, far: 40, position: [3.35, 1.45, -5.4] }}
-        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.12 }}
+        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0 }}
       >
-        <color attach="background" args={["#101218"]} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[6, 8, 4]} intensity={1.55} />
-        <directionalLight position={[-5, 3, -6]} intensity={0.55} color="#d7def0" />
-        <Environment preset="studio" />
+        <color attach="background" args={["#e8e6e0"]} />
+        <hemisphereLight args={["#ffffff", "#b7b4ae", 1.15]} />
+        <directionalLight position={[3, 7, 5]} intensity={0.95} />
+        <directionalLight position={[-6, 2, -3]} intensity={0.28} />
         <Suspense fallback={<Loader />}>
           <TeslaModel spots={spots} onPick={onPick} />
         </Suspense>
-        <ContactShadows position={[0, 0, 0]} opacity={0.5} scale={9} blur={2.4} far={2.8} />
+        <ContactShadows position={[0, 0, 0]} opacity={0.28} scale={8} blur={3} far={2.4} />
         <LockedOrbit />
       </Canvas>
     </div>
