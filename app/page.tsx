@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { SIZE_LABEL, depositFor, minimumBid, usd, type SpotSize } from "@/lib/spots";
 
@@ -40,6 +41,11 @@ type State = {
   history: HistoryItem[];
 };
 
+const Car3D = dynamic(() => import("@/components/Car3D"), {
+  ssr: false,
+  loading: () => <div className="car-canvas" />,
+});
+
 function TeslaT({ size = 54 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
@@ -62,7 +68,7 @@ function countdown(end: string) {
 
 export default function Home() {
   const [state, setState] = useState<State | null>(null);
-  const [mode, setMode] = useState<"live" | "final">("live");
+  const [mode, setMode] = useState<"live" | "final">("final");
   const [open, setOpen] = useState<SpotView | null>(null);
   const [now, setNow] = useState("");
 
@@ -132,16 +138,26 @@ export default function Home() {
         </header>
 
         <section className="stage" id="auction">
-          {mode === "live" ? <Lid spots={spots} onPick={setOpen} /> : <FinalLook spots={spots} onPick={setOpen} />}
+          {mode === "live" ? (
+            <Lid spots={spots} onPick={setOpen} />
+          ) : (
+            <Car3D
+              spots={spots}
+              onPick={(id) => {
+                const s = spots.find((x) => x.id === id);
+                if (s) setOpen(s);
+              }}
+            />
+          )}
           <div className="toggle">
-            <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")} type="button">
-              Live auction
-            </button>
             <button className={mode === "final" ? "on" : ""} onClick={() => setMode("final")} type="button">
-              Final look
+              3D car
+            </button>
+            <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")} type="button">
+              Spot map
             </button>
           </div>
-          <p className="hint">Tap any spot to place a bid.</p>
+          <p className="hint">Drag to spin · pinch to zoom · tap a sticker to bid</p>
         </section>
 
         <section className="section">
