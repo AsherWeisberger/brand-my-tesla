@@ -26,6 +26,7 @@ export async function GET() {
       spotId: b.spotId,
       amount: b.amount,
       brand: b.brand,
+      approved: b.approved,
       createdAt: b.createdAt,
     })),
   };
@@ -44,8 +45,7 @@ export async function POST(req: Request) {
       x: body.x ? String(body.x) : undefined,
       logoDataUrl: body.logoDataUrl ? String(body.logoDataUrl) : undefined,
     });
-    const state = await getState();
-    return NextResponse.json({ ok: true, bidId: bid.id, deposit: bid.deposit, state });
+    return NextResponse.json({ ok: true, bidId: bid.id, deposit: bid.deposit });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Could not place bid";
     return NextResponse.json({ ok: false, error: message }, { status: 400 });
