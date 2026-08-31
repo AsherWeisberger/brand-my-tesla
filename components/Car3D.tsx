@@ -17,7 +17,7 @@ export type SpotView = {
 };
 
 const MODEL = "/models/tesla/scene.gltf";
-const PAINT = "#f3f1ec";
+const PAINT = "#ffffff";
 const NUDGE = 0.012; // sit on the paint
 
 type PadDef = {
@@ -39,8 +39,8 @@ const PAD_DEFS: PadDef[] = [
   { id: 5, f: [0.08, 0.42, 0.38], size: [0.55, 0.28], rot: [0, Math.PI / 2, 0], out: [-1, 0, 0] },
   { id: 6, f: [0.72, 0.22, 0.97], size: [0.32, 0.12], rot: [0, 0, 0], out: [0, 0, 1] },
   { id: 7, f: [0.28, 0.22, 0.97], size: [0.32, 0.12], rot: [0, 0, 0], out: [0, 0, 1] },
-  { id: 8, f: [0.65, 0.62, 0.06], size: [0.42, 0.22], rot: [0.18, Math.PI, 0], out: [0, 0.18, -1] },
-  { id: 9, f: [0.35, 0.62, 0.06], size: [0.42, 0.22], rot: [0.18, Math.PI, 0], out: [0, 0.18, -1] },
+  { id: 8, f: [0.66, 0.70, 0.12], size: [0.38, 0.20], rot: [0.22, Math.PI, 0], out: [0, 0.22, -1] },
+  { id: 9, f: [0.34, 0.70, 0.12], size: [0.38, 0.20], rot: [0.22, Math.PI, 0], out: [0, 0.22, -1] },
   { id: 10, f: [0.72, 0.22, 0.015], size: [0.32, 0.12], rot: [0, Math.PI, 0], out: [0, 0, -1] },
   { id: 11, f: [0.28, 0.22, 0.015], size: [0.32, 0.12], rot: [0, Math.PI, 0], out: [0, 0, -1] },
 ];
@@ -119,9 +119,9 @@ function SpotPad({
           <meshBasicMaterial map={logo} toneMapped={false} side={THREE.DoubleSide} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
         ) : (
           <meshBasicMaterial
-            color={hot ? "#e2ff4d" : "#8f8d87"}
+            color={hot ? "#e2ff4d" : "#3a3936"}
             transparent
-            opacity={hot ? 0.72 : 0.58}
+            opacity={hot ? 0.88 : 0.78}
             depthWrite={false}
             side={THREE.DoubleSide}
             polygonOffset
@@ -171,10 +171,11 @@ function TeslaModel({ spots, onPick }: { spots: SpotView[]; onPick: (id: number)
         const std = mat as THREE.MeshStandardMaterial;
         std.envMapIntensity = 1.6;
         const n = (std.name || "").toLowerCase();
-        if (n === "primary" || n.startsWith("primary.")) {
+        if (n === "primary" || n.startsWith("primary.") || n.includes("putih") || n.includes("paint")) {
+          std.map = null;
           std.color.set(PAINT);
-          std.metalness = 0.7;
-          std.roughness = 0.16;
+          std.metalness = 0.22;
+          std.roughness = 0.34;
           if ("clearcoat" in std) {
             (std as THREE.MeshPhysicalMaterial).clearcoat = 1;
             (std as THREE.MeshPhysicalMaterial).clearcoatRoughness = 0.07;
@@ -257,9 +258,9 @@ export default function Car3D({ spots, onPick }: { spots: SpotView[]; onPick: (i
         gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0 }}
       >
         <color attach="background" args={["#e8e6e0"]} />
-        <hemisphereLight args={["#ffffff", "#b7b4ae", 1.15]} />
-        <directionalLight position={[3, 7, 5]} intensity={0.95} />
-        <directionalLight position={[-6, 2, -3]} intensity={0.28} />
+        <hemisphereLight args={["#ffffff", "#e6e4de", 0.9]} />
+        <directionalLight position={[4, 8, 6]} intensity={1.35} />
+        <directionalLight position={[-3, 5, -4]} intensity={0.5} />
         <Suspense fallback={<Loader />}>
           <TeslaModel spots={spots} onPick={onPick} />
         </Suspense>
