@@ -18,6 +18,6 @@ STRIPE keys are optional. Without them, bids still record and deposits stay pend
 
 ## Auction
 
-Ten vinyl spots around the Tesla badge on the trunk. Opening bids $250 / $500 / $750-$1,000. Minimum raise $50. 20% deposit. Logos go on the car only after a hand check at /admin.
+Eleven vinyl spots on a white 2018 Model 3 — hood, doors, bumpers, and trunk. The Tesla badge stays clean. Opening bids $250 / $500 / $750–$1,000 (hood is $1,000). Minimum raise $50. 20% deposit. Logos go on the car only after a hand check at /admin.
 
 Bids persist in data/bids.json.

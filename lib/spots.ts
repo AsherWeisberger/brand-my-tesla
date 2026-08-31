@@ -16,16 +16,17 @@ export const DEPOSIT_RATE = 0.2;
 export const DEPOSIT_MIN = 25;
 
 export const SPOTS: Spot[] = [
-  { id: 1, name: "Marquee", hint: "above the Tesla badge", size: "L", dim: "9.5 × 5.5 cm", dimIn: "3.7 × 2.2 in", opening: 1000 },
-  { id: 2, name: "Top left hatch", hint: "upper left of the trunk", size: "L", dim: "9.5 × 5.5 cm", dimIn: "3.7 × 2.2 in", opening: 750 },
-  { id: 3, name: "Top right hatch", hint: "upper right of the trunk", size: "L", dim: "9.5 × 5.5 cm", dimIn: "3.7 × 2.2 in", opening: 750 },
-  { id: 4, name: "Inner left", hint: "beside the badge", size: "S", dim: "4.5 × 4.5 cm", dimIn: "1.8 × 1.8 in", opening: 250 },
-  { id: 5, name: "Inner right", hint: "beside the badge", size: "S", dim: "4.5 × 4.5 cm", dimIn: "1.8 × 1.8 in", opening: 250 },
-  { id: 6, name: "Bottom center", hint: "under the badge", size: "M", dim: "9.5 × 4 cm", dimIn: "3.7 × 1.6 in", opening: 500 },
-  { id: 7, name: "Bottom left strip", hint: "lower left of the trunk", size: "M", dim: "9.5 × 4 cm", dimIn: "3.7 × 1.6 in", opening: 500 },
-  { id: 8, name: "Bottom right strip", hint: "lower right of the trunk", size: "M", dim: "9.5 × 4 cm", dimIn: "3.7 × 1.6 in", opening: 500 },
-  { id: 9, name: "Driver C-pillar", hint: "rear side, driver", size: "S", dim: "4.5 × 4.5 cm", dimIn: "1.8 × 1.8 in", opening: 250 },
-  { id: 10, name: "Passenger C-pillar", hint: "rear side, passenger", size: "S", dim: "4.5 × 4.5 cm", dimIn: "1.8 × 1.8 in", opening: 250 },
+  { id: 1, name: "Hood", hint: "center of the hood", size: "L", dim: "9.5 × 5.5 cm", dimIn: "3.7 × 2.2 in", opening: 1000 },
+  { id: 2, name: "Driver door", hint: "front door, driver", size: "L", dim: "9.5 × 5.5 cm", dimIn: "3.7 × 2.2 in", opening: 750 },
+  { id: 3, name: "Passenger door", hint: "front door, passenger", size: "L", dim: "9.5 × 5.5 cm", dimIn: "3.7 × 2.2 in", opening: 750 },
+  { id: 4, name: "Driver rear door", hint: "rear door, driver", size: "M", dim: "9.5 × 4 cm", dimIn: "3.7 × 1.6 in", opening: 500 },
+  { id: 5, name: "Passenger rear door", hint: "rear door, passenger", size: "M", dim: "9.5 × 4 cm", dimIn: "3.7 × 1.6 in", opening: 500 },
+  { id: 6, name: "Front bumper left", hint: "driver side of the front bumper", size: "M", dim: "9.5 × 4 cm", dimIn: "3.7 × 1.6 in", opening: 500 },
+  { id: 7, name: "Front bumper right", hint: "passenger side of the front bumper", size: "M", dim: "9.5 × 4 cm", dimIn: "3.7 × 1.6 in", opening: 500 },
+  { id: 8, name: "Trunk left", hint: "left side of the trunk", size: "L", dim: "9.5 × 5.5 cm", dimIn: "3.7 × 2.2 in", opening: 750 },
+  { id: 9, name: "Trunk right", hint: "right side of the trunk", size: "L", dim: "9.5 × 5.5 cm", dimIn: "3.7 × 2.2 in", opening: 750 },
+  { id: 10, name: "Rear bumper left", hint: "driver side of the rear bumper", size: "S", dim: "4.5 × 4.5 cm", dimIn: "1.8 × 1.8 in", opening: 250 },
+  { id: 11, name: "Rear bumper right", hint: "passenger side of the rear bumper", size: "S", dim: "4.5 × 4.5 cm", dimIn: "1.8 × 1.8 in", opening: 250 },
 ];
 
 export const SIZE_LABEL: Record<SpotSize, string> = {

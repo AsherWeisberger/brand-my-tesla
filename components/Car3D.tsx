@@ -18,27 +18,39 @@ export type SpotView = {
 
 const MODEL = "/models/tesla/scene.gltf";
 const PAINT = "#f3f1ec";
+const NUDGE = 0.03; // ~3 cm off the paint
 
-type PadLayout = {
+type PadDef = {
   id: number;
-  position: [number, number, number];
+  f: [number, number, number];
   size: [number, number];
+  rot: [number, number, number];
+  out: [number, number, number];
 };
 
-// Local to the rear-deck group (Y-rotated π so +X is screen-left / world −X).
-// 9/10 sit further out and slightly toward the cabin (local −Z → world +Z).
-const PADS: PadLayout[] = [
-  { id: 1, position: [0, 0.18, 0], size: [0.55, 0.16] },
-  { id: 2, position: [0.5, 0.18, 0], size: [0.42, 0.16] },
-  { id: 3, position: [-0.5, 0.18, 0], size: [0.42, 0.16] },
-  { id: 4, position: [0.2, 0, 0], size: [0.18, 0.12] },
-  { id: 5, position: [-0.2, 0, 0], size: [0.18, 0.12] },
-  { id: 6, position: [0, -0.16, 0], size: [0.42, 0.12] },
-  { id: 7, position: [0.5, -0.16, 0], size: [0.42, 0.12] },
-  { id: 8, position: [-0.5, -0.16, 0], size: [0.42, 0.12] },
-  { id: 9, position: [0.78, 0.04, -0.12], size: [0.14, 0.14] },
-  { id: 10, position: [-0.78, 0.04, -0.12], size: [0.14, 0.14] },
+// After Y=π: min.z = rear/trunk, max.z = front/hood.
+// Driver (US) is max.x (0.92); passenger is min.x (0.08).
+// From the default rear camera (−Z), that puts the driver on screen-right.
+const PAD_DEFS: PadDef[] = [
+  { id: 1, f: [0.5, 0.78, 0.78], size: [0.55, 0.32], rot: [-Math.PI / 2, 0, 0], out: [0, 1, 0] },
+  { id: 2, f: [0.92, 0.42, 0.55], size: [0.55, 0.28], rot: [0, -Math.PI / 2, 0], out: [1, 0, 0] },
+  { id: 3, f: [0.08, 0.42, 0.55], size: [0.55, 0.28], rot: [0, Math.PI / 2, 0], out: [-1, 0, 0] },
+  { id: 4, f: [0.92, 0.42, 0.38], size: [0.55, 0.28], rot: [0, -Math.PI / 2, 0], out: [1, 0, 0] },
+  { id: 5, f: [0.08, 0.42, 0.38], size: [0.55, 0.28], rot: [0, Math.PI / 2, 0], out: [-1, 0, 0] },
+  { id: 6, f: [0.72, 0.22, 0.97], size: [0.32, 0.12], rot: [0, 0, 0], out: [0, 0, 1] },
+  { id: 7, f: [0.28, 0.22, 0.97], size: [0.32, 0.12], rot: [0, 0, 0], out: [0, 0, 1] },
+  { id: 8, f: [0.65, 0.62, 0.06], size: [0.42, 0.22], rot: [0.18, Math.PI, 0], out: [0, 0.18, -1] },
+  { id: 9, f: [0.35, 0.62, 0.06], size: [0.42, 0.22], rot: [0.18, Math.PI, 0], out: [0, 0.18, -1] },
+  { id: 10, f: [0.72, 0.22, 0.015], size: [0.32, 0.12], rot: [0, Math.PI, 0], out: [0, 0, -1] },
+  { id: 11, f: [0.28, 0.22, 0.015], size: [0.32, 0.12], rot: [0, Math.PI, 0], out: [0, 0, -1] },
 ];
+
+type PadPose = {
+  id: number;
+  position: [number, number, number];
+  rotation: [number, number, number];
+  size: [number, number];
+};
 
 function useLogoTexture(url?: string) {
   const [tex, setTex] = useState<THREE.Texture | null>(null);
@@ -73,11 +85,13 @@ function useLogoTexture(url?: string) {
 function SpotPad({
   spot,
   position,
+  rotation,
   size,
   onPick,
 }: {
   spot?: SpotView;
   position: [number, number, number];
+  rotation: [number, number, number];
   size: [number, number];
   onPick: (id: number) => void;
 }) {
@@ -88,7 +102,7 @@ function SpotPad({
   const taken = Boolean(logo);
 
   return (
-    <group position={position}>
+    <group position={position} rotation={rotation}>
       <mesh
         onClick={(e) => {
           e.stopPropagation();
@@ -142,7 +156,7 @@ function SpotPad({
 
 function TeslaModel({ spots, onPick }: { spots: SpotView[]; onPick: (id: number) => void }) {
   const { scene } = useGLTF(MODEL);
-  const [deck, setDeck] = useState<{ y: number; z: number } | null>(null);
+  const [pads, setPads] = useState<PadPose[] | null>(null);
   const byId = useMemo(() => Object.fromEntries(spots.map((s) => [s.id, s])), [spots]);
 
   useLayoutEffect(() => {
@@ -169,22 +183,34 @@ function TeslaModel({ spots, onPick }: { spots: SpotView[]; onPick: (id: number)
     });
     scene.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(scene);
-    const h = box.max.y - box.min.y;
-    let y = box.min.y + 0.55 * h;
-    if (y < 0.92 || y > 1.1) y = Math.min(1.05, Math.max(0.95, box.min.y + 0.62 * h));
-    setDeck({ y, z: box.min.z + 0.08 });
+    const sx = box.max.x - box.min.x;
+    const sy = box.max.y - box.min.y;
+    const sz = box.max.z - box.min.z;
+    const at = (fx: number, fy: number, fz: number): [number, number, number] => [
+      box.min.x + fx * sx,
+      box.min.y + fy * sy,
+      box.min.z + fz * sz,
+    ];
+    setPads(
+      PAD_DEFS.map((def) => {
+        const [x, y, z] = at(...def.f);
+        const len = Math.hypot(...def.out) || 1;
+        return {
+          id: def.id,
+          position: [x + (def.out[0] / len) * NUDGE, y + (def.out[1] / len) * NUDGE, z + (def.out[2] / len) * NUDGE] as [number, number, number],
+          rotation: def.rot,
+          size: def.size,
+        };
+      }),
+    );
   }, [scene]);
 
   return (
     <group>
       <primitive object={scene} />
-      {deck && (
-        <group position={[0, deck.y, deck.z]} rotation={[0.15, Math.PI, 0]}>
-          {PADS.map((pad) => (
-            <SpotPad key={pad.id} spot={byId[pad.id]} position={pad.position} size={pad.size} onPick={onPick} />
-          ))}
-        </group>
-      )}
+      {pads?.map((pad) => (
+        <SpotPad key={pad.id} spot={byId[pad.id]} position={pad.position} rotation={pad.rotation} size={pad.size} onPick={onPick} />
+      ))}
     </group>
   );
 }

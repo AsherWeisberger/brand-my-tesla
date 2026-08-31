@@ -112,16 +112,16 @@ export default function Home() {
           <p className="kicker">Robert Scoble · @scobleizer · UNALIGNED</p>
           <h1>Your brand, on my Tesla.</h1>
           <p className="lede">
-            Ten vinyl spots on a white 2018 Model 3. The Tesla badge stays clean. Your logo rides
-            the trunk through the Bay Area, Superchargers, conferences, and the posts that come
-            with them.
+            Eleven vinyl spots on a white 2018 Model 3. Hood, doors, bumpers, trunk. The Tesla
+            badge stays clean. Your logo rides the car through the Bay Area, Superchargers,
+            conferences, and the posts that come with them.
           </p>
           <div className="stats">
             <div>
               <div className="stat-num">{usd(state?.raised ?? 0)}</div>
-              <div className="stat-label">raised · {state?.taken ?? 0} of 10 spots with bids</div>
+              <div className="stat-label">raised · {state?.taken ?? 0} of 11 spots with bids</div>
               <div className="bar">
-                <span style={{ width: `${Math.min(100, ((state?.taken ?? 0) / 10) * 100)}%` }} />
+                <span style={{ width: `${Math.min(100, ((state?.taken ?? 0) / 11) * 100)}%` }} />
               </div>
             </div>
             <div>
@@ -157,12 +157,12 @@ export default function Home() {
               Spot map
             </button>
           </div>
-          <p className="hint">Drag to orbit · click a pad on the trunk to bid</p>
+          <p className="hint">Drag to orbit · click a pad on the car to bid</p>
         </section>
 
         <section className="section">
           <h2>The auction, live.</h2>
-          <p className="sub">Every spot shows its current top bid. Floors: $250 small · $500 medium · $750–$1,000 large. Premium sits next to the Tesla badge.</p>
+          <p className="sub">Every spot shows its current top bid. Floors still $250 / $500 / $750–$1,000. The hood is the $1,000 large.</p>
           <table className="table">
             <thead>
               <tr>
@@ -213,7 +213,7 @@ export default function Home() {
             <article className="step">
               <span>01</span>
               <h3>Pick your spot and size</h3>
-              <p>Ten zones, three sticker sizes, priced by how close they sit to the Tesla T.</p>
+              <p>Eleven zones on the hood, doors, bumpers, and trunk. Three sticker sizes; the hood opens at $1,000.</p>
             </article>
             <article className="step">
               <span>02</span>
@@ -273,7 +273,7 @@ export default function Home() {
           <h2>Questions</h2>
           <details open>
             <summary>Is this real?</summary>
-            <p>Yes. The Model 3 is real, the vinyl is real, and Robert actually drives it. The only stretch is treating a trunk like premium ad inventory — which is the point.</p>
+            <p>Yes. The Model 3 is real, the vinyl is real, and Robert actually drives it. The only stretch is treating a car like premium ad inventory — which is the point.</p>
           </details>
           <details>
             <summary>Why this car?</summary>
@@ -320,66 +320,23 @@ export default function Home() {
 
 function Lid({ spots, onPick }: { spots: SpotView[]; onPick: (s: SpotView) => void }) {
   const byId = (id: number) => spots.find((s) => s.id === id);
-  return (
-    <div className="lid" aria-label="Trunk sticker map">
-      {[2, 1, 3, 9, 4, 5, 10, 7, 6, 8].map((id) => {
-        const s = byId(id);
-        if (!s) return <div key={id} className={`s${id}`} />;
-        return (
-          <button key={id} className={`spot s${id}`} type="button" onClick={() => onPick(s)}>
-            {s.holder?.logoDataUrl ? <img src={s.holder.logoDataUrl} alt="" /> : <span className="s-meta">{SIZE_LABEL[s.size]}</span>}
-            <span className="s-name">{s.holder?.brand ?? s.name}</span>
-            <span className="s-bid">{usd(s.current)}</span>
-          </button>
-        );
-      })}
-      <div className="badge">
-        <TeslaT />
-      </div>
-    </div>
-  );
-}
-
-function FinalLook({ spots, onPick }: { spots: SpotView[]; onPick: (s: SpotView) => void }) {
-  const hit = (id: number) => {
-    const s = spots.find((x) => x.id === id);
-    if (s) onPick(s);
+  const cell = (id: number) => {
+    const s = byId(id);
+    if (!s) return <div key={id} className={`s${id}`} />;
+    return (
+      <button key={id} className={`spot s${id}`} type="button" onClick={() => onPick(s)}>
+        {s.holder?.logoDataUrl ? <img src={s.holder.logoDataUrl} alt="" /> : <span className="s-meta">{SIZE_LABEL[s.size]}</span>}
+        <span className="s-name">{s.holder?.brand ?? s.name}</span>
+        <span className="s-bid">{usd(s.current)}</span>
+      </button>
+    );
   };
   return (
-    <div className="final">
-      <svg className="car-svg" viewBox="0 0 900 420" role="img" aria-label="White 2018 Model 3 rear three-quarter">
-        <defs>
-          <linearGradient id="paint" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="#ffffff" />
-            <stop offset="1" stopColor="#d9d9d4" />
-          </linearGradient>
-          <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="18" stdDeviation="16" floodOpacity=".35" />
-          </filter>
-        </defs>
-        <ellipse cx="450" cy="378" rx="280" ry="18" fill="#000" opacity=".35" />
-        <g filter="url(#sh)">
-          <path fill="url(#paint)" d="M170 250c20-78 90-150 250-168 140-16 250 18 310 78 28 28 48 70 52 118l-8 42c-18 8-70 14-160 14H250c-50 0-90-6-80-84z" />
-          <path fill="#1a1c22" d="M250 118c90-40 230-44 330-8 8 20 10 42-6 54-86 18-210 20-300-6-12-16-16-28-24-40z" />
-          <path fill="#c1121f" d="M220 262h470c8 0 10 8 4 12H230c-8 0-12-6-10-12z" />
-          <rect x="430" y="200" width="40" height="40" rx="8" fill="#111" />
-          <path fill="#f3f1eb" d="M438 208h24l-2 4h-20zM449 212h6v20c-4 .6-7 .6-10 0 3 2 6 3 9 3s6-1 9-3c-3 .6-6 .6-10 0z" />
-          <ellipse cx="250" cy="330" rx="48" ry="48" fill="#1a1c22" />
-          <ellipse cx="250" cy="330" rx="28" ry="28" fill="#6b6d73" />
-          <ellipse cx="680" cy="328" rx="52" ry="52" fill="#1a1c22" />
-          <ellipse cx="680" cy="328" rx="30" ry="30" fill="#6b6d73" />
-        </g>
-        <rect className="hotspot" onClick={() => hit(1)} x="400" y="150" width="100" height="40" rx="8" />
-        <rect className="hotspot" onClick={() => hit(2)} x="280" y="150" width="100" height="40" rx="8" />
-        <rect className="hotspot" onClick={() => hit(3)} x="520" y="150" width="100" height="40" rx="8" />
-        <rect className="hotspot" onClick={() => hit(4)} x="360" y="200" width="48" height="40" rx="8" />
-        <rect className="hotspot" onClick={() => hit(5)} x="492" y="200" width="48" height="40" rx="8" />
-        <rect className="hotspot" onClick={() => hit(6)} x="400" y="248" width="100" height="32" rx="8" />
-        <rect className="hotspot" onClick={() => hit(7)} x="280" y="248" width="100" height="32" rx="8" />
-        <rect className="hotspot" onClick={() => hit(8)} x="520" y="248" width="100" height="32" rx="8" />
-        <rect className="hotspot" onClick={() => hit(9)} x="210" y="170" width="48" height="48" rx="8" />
-        <rect className="hotspot" onClick={() => hit(10)} x="650" y="165" width="48" height="48" rx="8" />
-      </svg>
+    <div className="lid" aria-label="Car sticker map">
+      {[6, 1, 7, 2, 3, 4, 5, 8, 9, 10, 11].map(cell)}
+      <div className="badge">
+        <TeslaT size={36} />
+      </div>
     </div>
   );
 }

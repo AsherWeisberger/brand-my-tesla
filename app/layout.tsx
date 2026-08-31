@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Brand My Tesla — Robert Scoble",
   description:
-    "Live auction: 10 vinyl sticker spots on Robert Scoble's white 2018 Tesla Model 3. Your logo rides with him.",
+    "Live auction: 11 vinyl sticker spots on Robert Scoble's white 2018 Tesla Model 3. Your logo rides with him.",
   authors: [{ name: "Asher Weisberger", url: "https://x.com/AsherWeisberger" }],
   creator: "@AsherWeisberger",
   openGraph: {
